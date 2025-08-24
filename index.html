@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Acompanhamento</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --verde-claro: #67BF7F;
+            --vermelho-claro: #E54646;
+            --cinza-claro: #f5f5f5;
+            --branco: #ffffff;
+            --sombra: rgba(0, 0, 0, 0.1);
+            --azul: #3498db;
+            --azul-escuro: #2980b9;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--branco);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--sombra);
+            padding: 20px;
+            position: relative;
+        }
+        
+        .tela-login, .tela-cadastro {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .tela-login h2, .tela-cadastro h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            background-color: var(--azul);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: var(--azul-escuro);
+        }
+        
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--azul);
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .app {
+            display: none;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .abas {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .aba {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .aba.ativa {
+            border-bottom: 3px solid var(--azul);
+            color: var(--azul);
+            font-weight: bold;
+        }
+        
+        .conteudo-aba {
+            display: none;
+        }
+        
+        .conteudo-aba.ativa {
+            display: block;
+        }
+        
+        .controles {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .mes-ano {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--azul);
+        }
+        
+        .calendario {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .dia-semana {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background-color: var(--azul);
+            color: white;
+            border-radius: 4px;
+        }
+        
+        .dia {
+            background-color: var(--cinza-claro);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 150px;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+        
+        .dia.domingo {
+            background-color: #ffebee;
+        }
+        
+        .dia.verde {
+            background-color: var(--verde-claro);
+        }
+        
+        .dia.vermelho {
+            background-color: var(--vermelho-claro);
+        }
+        
+        .numero-dia {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .peso-input {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .checkbox-item input {
+            margin-right: 5px;
+        }
+        
+        .acoes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            padding: 8px 15px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .file-label:hover {
+            background-color: #27ae60;
+        }
+        
+        .logout-btn {
+            padding: 5px 10px;
+            background-color: var(--vermelho-claro);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .graficos {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .grafico-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .grafico-container h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+        
+        @media (max-width: 768px) {
+            .calendario {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dia-semana {
+                display: none;
+            }
+            
+            .dia {
+                min-height: 120px;
+            }
+            
+            .user-info {
+                position: static;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+            
+            .abas {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .calendario {
+                grid-template-columns: 1fr;
+            }
+            
+            .controles {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .acoes {
+                flex-direction: column;
+            }
+            
+            button, .file-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div class="tela-login" id="tela-login">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" placeholder="Seu e-mail">
+            </div>
+            <div class="form-group">
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" placeholder="Sua senha">
+            </div>
+            <button class="btn" id="btn-login">Entrar</button>
+            <button class="link-btn" id="btn-ir-cadastro">Não tem conta? Cadastre-se</button>
+        </div>
+        
+        <!-- Tela de Cadastro -->
+        <div class="tela-cadastro" id="tela-cadastro" style="display: none;">
+            <h2>Criar Conta</h2>
+            <div class="form-group">
+                <label for="cadastro-email">E-mail</label>
+                <input type="email" id="cadastro-email" placeholder="Seu e-mail">
+            </div>
+            <div class="form-group">
+                <label for="cadastro-senha">Senha</label>
+                <input type="password" id="cadastro-senha" placeholder="Crie uma senha">
+            </div>
+            <div class="form-group">
+                <label for="cadastro-confirmar-senha">Confirmar Senha</label>
+                <input type="password" id="cadastro-confirmar-senha" placeholder="Confirme sua senha">
+            </div>
+            <button class="btn" id="btn-cadastrar">Cadastrar</button>
+            <button class="link-btn" id="btn-ir-login">Já tem conta? Faça login</button>
+        </div>
+        
+        <!-- Aplicação Principal -->
+        <div class="app" id="app">
+            <div class="user-info">
+                <span id="user-email"></span>
+                <button class="logout-btn" id="btn-logout">Sair</button>
+            </div>
+            
+            <header>
+                <h1>Calendário de Acompanhamento</h1>
+                <p>Registre seu peso e hábitos diários</p>
+            </header>
+            
+            <div class="abas">
+                <div class="aba ativa" data-aba="calendario">Calendário</div>
+                <div class="aba" data-aba="graficos">Gráficos</div>
+            </div>
+            
+            <!-- Aba do Calendário -->
+            <div class="conteudo-aba ativa" id="aba-calendario">
+                <div class="controles">
+                    <button id="btn-mes-anterior">Mês Anterior</button>
+                    <div class="mes-ano" id="mes-ano">Junho 2023</div>
+                    <button id="btn-proximo-mes">Próximo Mês</button>
+                </div>
+                
+                <div class="calendario" id="calendario">
+                    <!-- Os dias da semana -->
+                    <div class="dia-semana">Dom</div>
+                    <div class="dia-semana">Seg</div>
+                    <div class="dia-semana">Ter</div>
+                    <div class="dia-semana">Qua</div>
+                    <div class="dia-semana">Qui</div>
+                    <div class="dia-semana">Sex</div>
+                    <div class="dia-semana">Sáb</div>
+                    
+                    <!-- Os dias do mês serão inseridos aqui via JavaScript -->
+                </div>
+                
+                <div class="acoes">
+                    <button id="btn-salvar">Salvar Dados (JSON)</button>
+                    <input type="file" id="file-input" class="file-input" accept=".json">
+                    <label for="file-input" class="file-label">Carregar Dados</label>
+                </div>
+            </div>
+            
+            <!-- Aba de Gráficos -->
+            <div class="conteudo-aba" id="aba-graficos">
+                <div class="graficos">
+                    <div class="grafico-container">
+                        <h3>Evolução do Peso</h3>
+                        <canvas id="grafico-peso"></canvas>
+                    </div>
+                    
+                    <div class="grafico-container">
+                        <h3>Aderência à Rotina</h3>
+                        <canvas id="grafico-aderencia"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const telaLogin = document.getElementById('tela-login');
+            const telaCadastro = document.getElementById('tela-cadastro');
+            const app = document.getElementById('app');
+            const btnIrCadastro = document.getElementById('btn-ir-cadastro');
+            const btnIrLogin = document.getElementById('btn-ir-login');
+            const btnLogin = document.getElementById('btn-login');
+            const btnCadastrar = document.getElementById('btn-cadastrar');
+            const btnLogout = document.getElementById('btn-logout');
+            const userEmailSpan = document.getElementById('user-email');
+            const abas = document.querySelectorAll('.aba');
+            const conteudosAbas = document.querySelectorAll('.conteudo-aba');
+            
+            const calendarioEl = document.getElementById('calendario');
+            const mesAnoEl = document.getElementById('mes-ano');
+            const btnMesAnterior = document.getElementById('btn-mes-anterior');
+            const btnProximoMes = document.getElementById('btn-proximo-mes');
+            const btnSalvar = document.getElementById('btn-salvar');
+            const fileInput = document.getElementById('file-input');
+            
+            // Data atual
+            let dataAtual = new Date();
+            let dados = {};
+            let usuarioLogado = null;
+            let graficoPeso = null;
+            let graficoAderencia = null;
+            
+            // Verificar se há usuário logado
+            function verificarLogin() {
+                const usuario = localStorage.getItem('usuarioLogado');
+                if (usuario) {
+                    usuarioLogado = JSON.parse(usuario);
+                    userEmailSpan.textContent = usuarioLogado.email;
+                    telaLogin.style.display = 'none';
+                    telaCadastro.style.display = 'none';
+                    app.style.display = 'block';
+                    
+                    // Carregar dados do usuário
+                    const dadosUsuario = localStorage.getItem(`dados_${usuarioLogado.email}`);
+                    if (dadosUsuario) {
+                        dados = JSON.parse(dadosUsuario);
+                    }
+                    
+                    inicializarCalendario();
+                }
+            }
+            
+            // Inicializar o calendário
+            function inicializarCalendario() {
+                atualizarCalendario();
+                preencherDadosSalvos();
+            }
+            
+            // Atualizar o calendário com o mês e ano atuais
+            function atualizarCalendario() {
+                // Limpar dias existentes (exceto os cabeçalhos dos dias da semana)
+                while (calendarioEl.children.length > 7) {
+                    calendarioEl.removeChild(calendarioEl.lastChild);
+                }
+                
+                // Atualizar o título do mês e ano
+                const meses = [
+                    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julio', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                ];
+                mesAnoEl.textContent = `${meses[dataAtual.getMonth()]} ${dataAtual.getFullYear()}`;
+                
+                // Obter o primeiro dia do mês e o número de dias no mês
+                const primeiroDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
+                const ultimoDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0);
+                const diasNoMes = ultimoDia.getDate();
+                
+                // Adicionar células vazias para os dias antes do primeiro dia do mês
+                for (let i = 0; i < primeiroDia.getDay(); i++) {
+                    const celulaVazia = document.createElement('div');
+                    celulaVazia.classList.add('dia', 'vazio');
+                    calendarioEl.appendChild(celulaVazia);
+                }
+                
+                // Adicionar os dias do mês
+                for (let i = 1; i <= diasNoMes; i++) {
+                    const dia = document.createElement('div');
+                    const dataStr = formatarData(new Date(dataAtual.getFullYear(), dataAtual.getMonth(), i));
+                    
+                    // Verificar se é domingo
+                    const dataDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), i);
+                    if (dataDia.getDay() === 0) {
+                        dia.classList.add('dia', 'domingo');
+                    } else {
+                        dia.classList.add('dia');
+                    }
+                    
+                    dia.innerHTML = `
+                        <div class="numero-dia">${i}</div>
+                        <input type="number" class="peso-input" placeholder="Peso (kg)" step="0.1" data-data="${dataStr}" data-tipo="peso">
+                        <div class="checkboxes">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-cafe" data-data="${dataStr}" data-tipo="cafe">
+                                <label for="${dataStr}-cafe">Café</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-lanche1" data-data="${dataStr}" data-tipo="lanche1">
+                                <label for="${dataStr}-lanche1">Lanche 1</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-almoco" data-data="${dataStr}" data-tipo="almoco">
+                                <label for="${dataStr}-almoco">Almoço</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-lanche2" data-data="${dataStr}" data-tipo="lanche2">
+                                <label for="${dataStr}-lanche2">Lanche 2</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-jantar" data-data="${dataStr}" data-tipo="jantar">
+                                <label for="${dataStr}-jantar">Jantar</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${dataStr}-treino" data-data="${dataStr}" data-tipo="treino">
+                                <label for="${dataStr}-treino">Treino</label>
+                            </div>
+                        </div>
+                    `;
+                    
+                    calendarioEl.appendChild(dia);
+                    
+                    // Adicionar event listeners para os inputs
+                    const inputs = dia.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.addEventListener('change', atualizarEstadoDia);
+                    });
+                }
+                
+                // Preencher com dados salvos se existirem
+                preencherDadosSalvos();
+            }
+            
+            // Formatar data como string (YYYY-MM-DD)
+            function formatarData(data) {
+                const ano = data.getFullYear();
+                const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+                const dia = data.getDate().toString().padStart(2, '0');
+                return `${ano}-${mes}-${dia}`;
+            }
+            
+            // Preencher os dados salvos nos inputs
+            function preencherDadosSalvos() {
+                for (const dataStr in dados) {
+                    const diaData = dados[dataStr];
+                    
+                    // Encontrar o input de peso para esta data
+                    const pesoInput = document.querySelector(`.peso-input[data-data="${dataStr}"]`);
+                    if (pesoInput && diaData.peso !== undefined) {
+                        pesoInput.value = diaData.peso;
+                    }
+                    
+                    // Preencher as checkboxes
+                    const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
+                    tipos.forEach(tipo => {
+                        const checkbox = document.querySelector(`input[data-data="${dataStr}"][data-tipo="${tipo}"]`);
+                        if (checkbox && diaData[tipo] !== undefined) {
+                            checkbox.checked = diaData[tipo];
+                        }
+                    });
+                    
+                    // Atualizar o estado visual do dia
+                    atualizarEstadoVisualDia(dataStr);
+                }
+            }
+            
+            // Atualizar o estado visual do dia (verde/vermelho)
+            function atualizarEstadoDia(e) {
+                const input = e.target;
+                const dataStr = input.dataset.data;
+                const tipo = input.dataset.tipo;
+                
+                // Inicializar o objeto para esta data se não existir
+                if (!dados[dataStr]) {
+                    dados[dataStr] = {};
+                }
+                
+                // Atualizar o valor
+                if (tipo === 'peso') {
+                    dados[dataStr][tipo] = input.value ? parseFloat(input.value) : undefined;
+                } else {
+                    dados[dataStr][tipo] = input.checked;
+                }
+                
+                // Atualizar o estado visual
+                atualizarEstadoVisualDia(dataStr);
+                
+                // Salvar os dados no localStorage
+                salvarDadosUsuario();
+                
+                // Atualizar gráficos se estiverem visíveis
+                if (document.getElementById('aba-graficos').classList.contains('ativa')) {
+                    atualizarGraficos();
+                }
+            }
+            
+            // Atualizar a cor de fundo do dia com base nos dados
+            function atualizarEstadoVisualDia(dataStr) {
+                const diaData = dados[dataStr];
+                if (!diaData) return;
+                
+                // Encontrar o elemento do dia
+                const pesoInput = document.querySelector(`.peso-input[data-data="${dataStr}"]`);
+                if (!pesoInput) return;
+                
+                const diaEl = pesoInput.closest('.dia');
+                
+                // Verificar se todos os campos estão preenchidos corretamente
+                const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
+                const todosPreenchidos = tipos.every(tipo => diaData[tipo] !== undefined && diaData[tipo] === true);
+                const pesoPreenchido = diaData.peso !== undefined;
+                
+                // Remover classes de cor existentes
+                diaEl.classList.remove('verde', 'vermelho');
+                
+                // Aplicar a cor com base no preenchimento
+                if (todosPreenchidos && pesoPreenchido) {
+                    diaEl.classList.add('verde');
+                } else if (!todosPreenchidos && pesoPreenchido) {
+                    diaEl.classList.add('vermelho');
+                }
+            }
+            
+            // Salvar dados do usuário no localStorage
+            function salvarDadosUsuario() {
+                if (usuarioLogado) {
+                    localStorage.setItem(`dados_${usuarioLogado.email}`, JSON.stringify(dados));
+                }
+            }
+            
+            // Salvar dados em um arquivo JSON
+            function salvarDadosArquivo() {
+                const dadosParaSalvar = JSON.stringify(dados, null, 2);
+                const blob = new Blob([dadosParaSalvar], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `acompanhamento-${formatarData(dataAtual)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Limpar
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+            
+            // Carregar dados de um arquivo JSON
+            function carregarDadosArquivo(arquivo) {
+                const leitor = new FileReader();
+                
+                leitor.onload = function(e) {
+                    try {
+                        const dadosCarregados = JSON.parse(e.target.result);
+                        dados = dadosCarregados;
+                        salvarDadosUsuario();
+                        preencherDadosSalvos();
+                        
+                        // Atualizar gráficos se estiverem visíveis
+                        if (document.getElementById('aba-graficos').classList.contains('ativa')) {
+                            atualizarGraficos();
+                        }
+                        
+                        alert('Dados carregados com sucesso!');
+                    } catch (erro) {
+                        alert('Erro ao carregar o arquivo. Certifique-se de que é um JSON válido.');
+                        console.error(erro);
+                    }
+                };
+                
+                leitor.readAsText(arquivo);
+            }
+            
+            // Atualizar gráficos
+            function atualizarGraficos() {
+                // Preparar dados para o gráfico de peso
+                const dadosPeso = [];
+                const labelsPeso = [];
+                
+                // Preparar dados para o gráfico de aderência
+                const dadosAderencia = [];
+                const labelsAderencia = [];
+                
+                // Coletar dados organizados por data
+                const datasOrdenadas = Object.keys(dados).sort();
+                
+                for (const data of datasOrdenadas) {
+                    const diaData = dados[data];
+                    
+                    // Adicionar ao gráfico de peso se houver peso registrado
+                    if (diaData.peso !== undefined) {
+                        dadosPeso.push(diaData.peso);
+                        labelsPeso.push(data);
+                    }
+                    
+                    // Calcular aderência (percentual de hábitos completados)
+                    if (diaData.peso !== undefined) {
+                        const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
+                        const completados = tipos.filter(tipo => diaData[tipo] === true).length;
+                        const percentual = (completados / tipos.length) * 100;
+                        
+                        dadosAderencia.push(percentual);
+                        labelsAderencia.push(data);
+                    }
+                }
+                
+                // Atualizar ou criar gráfico de peso
+                const ctxPeso = document.getElementById('grafico-peso').getContext('2d');
+                if (graficoPeso) {
+                    graficoPeso.destroy();
+                }
+                
+                if (dadosPeso.length > 0) {
+                    graficoPeso = new Chart(ctxPeso, {
+                        type: 'line',
+                        data: {
+                            labels: labelsPeso,
+                            datasets: [{
+                                label: 'Peso (kg)',
+                                data: dadosPeso,
+                                borderColor: '#3498db',
+                                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Evolução do Peso'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    title: {
+                                        display: true,
+                                        text: 'Peso (kg)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Data'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    ctxPeso.clearRect(0, 0, ctxPeso.canvas.width, ctxPeso.canvas.height);
+                    ctxPeso.font = "16px Arial";
+                    ctxPeso.fillStyle = "#999";
+                    ctxPeso.textAlign = "center";
+                    ctxPeso.fillText("Nenhum dado de peso disponível", ctxPeso.canvas.width / 2, ctxPeso.canvas.height / 2);
+                }
+                
+                // Atualizar ou criar gráfico de aderência
+                const ctxAderencia = document.getElementById('grafico-aderencia').getContext('2d');
+                if (graficoAderencia) {
+                    graficoAderencia.destroy();
+                }
+                
+                if (dadosAderencia.length > 0) {
+                    graficoAderencia = new Chart(ctxAderencia, {
+                        type: 'line',
+                        data: {
+                            labels: labelsAderencia,
+                            datasets: [{
+                                label: 'Aderência (%)',
+                                data: dadosAderencia,
+                                borderColor: '#67BF7F',
+                                backgroundColor: 'rgba(103, 191, 127, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Aderência à Rotina'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Percentual de Aderência (%)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Data'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    ctxAderencia.clearRect(0, 0, ctxAderencia.canvas.width, ctxAderencia.canvas.height);
+                    ctxAderencia.font = "16px Arial";
+                    ctxAderencia.fillStyle = "#999";
+                    ctxAderencia.textAlign = "center";
+                    ctxAderencia.fillText("Nenhum dado de aderência disponível", ctxAderencia.canvas.width / 2, ctxAderencia.canvas.height / 2);
+                }
+            }
+            
+            // Funções de autenticação
+            function fazerLogin() {
+                const email = document.getElementById('login-email').value;
+                const senha = document.getElementById('login-senha').value;
+                
+                if (!email || !senha) {
+                    alert('Por favor, preencha todos os campos.');
+                    return;
+                }
+                
+                const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+                const usuario = usuarios.find(u => u.email === email && u.senha === senha);
+                
+                if (usuario) {
+                    usuarioLogado = usuario;
+                    localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+                    userEmailSpan.textContent = usuario.email;
+                    
+                    // Carregar dados do usuário
+                    const dadosUsuario = localStorage.getItem(`dados_${usuario.email}`);
+                    if (dadosUsuario) {
+                        dados = JSON.parse(dadosUsuario);
+                    }
+                    
+                    telaLogin.style.display = 'none';
+                    app.style.display = 'block';
+                    inicializarCalendario();
+                } else {
+                    alert('E-mail ou senha incorretos.');
+                }
+            }
+            
+            function criarConta() {
+                const email = document.getElementById('cadastro-email').value;
+                const senha = document.getElementById('cadastro-senha').value;
+                const confirmarSenha = document.getElementById('cadastro-confirmar-senha').value;
+                
+                if (!email || !senha || !confirmarSenha) {
+                    alert('Por favor, preencha todos os campos.');
+                    return;
+                }
+                
+                if (senha !== confirmarSenha) {
+                    alert('As senhas não coincidem.');
+                    return;
+                }
+                
+                const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+                
+                if (usuarios.find(u => u.email === email)) {
+                    alert('Este e-mail já está cadastrado.');
+                    return;
+                }
+                
+                const novoUsuario = { email, senha };
+                usuarios.push(novoUsuario);
+                localStorage.setItem('usuarios', JSON.stringify(usuarios));
+                
+                alert('Conta criada com sucesso! Faça login para continuar.');
+                btnIrLogin.click();
+            }
+            
+            function fazerLogout() {
+                usuarioLogado = null;
+                localStorage.removeItem('usuarioLogado');
+                dados = {};
+                
+                app.style.display = 'none';
+                telaLogin.style.display = 'block';
+                
+                // Limpar campos de login
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-senha').value = '';
+            }
+            
+            // Alternar entre abas
+            abas.forEach(aba => {
+                aba.addEventListener('click', function() {
+                    const abaAlvo = this.dataset.aba;
+                    
+                    // Remover classe ativa de todas as abas
+                    abas.forEach(a => a.classList.remove('ativa'));
+                    conteudosAbas.forEach(c => c.classList.remove('ativa'));
+                    
+                    // Adicionar classe ativa à aba clicada
+                    this.classList.add('ativa');
+                    document.getElementById(`aba-${abaAlvo}`).classList.add('ativa');
+                    
+                    // Se for a aba de gráficos, atualizar os gráficos
+                    if (abaAlvo === 'graficos') {
+                        atualizarGraficos();
+                    }
+                });
+            });
+            
+            // Event Listeners
+            btnMesAnterior.addEventListener('click', function() {
+                dataAtual.setMonth(dataAtual.getMonth() - 1);
+                atualizarCalendario();
+            });
+            
+            btnProximoMes.addEventListener('click', function() {
+                dataAtual.setMonth(dataAtual.getMonth() + 1);
+                atualizarCalendario();
+            });
+            
+            btnSalvar.addEventListener('click', salvarDadosArquivo);
+            
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    carregarDadosArquivo(this.files[0]);
+                }
+            });
+            
+            btnIrCadastro.addEventListener('click', function() {
+                telaLogin.style.display = 'none';
+                telaCadastro.style.display = 'block';
+            });
+            
+            btnIrLogin.addEventListener('click', function() {
+                telaCadastro.style.display = 'none';
+                telaLogin.style.display = 'block';
+            });
+            
+            btnLogin.addEventListener('click', fazerLogin);
+            
+            btnCadastrar.addEventListener('click', criarConta);
+            
+            btnLogout.addEventListener('click', fazerLogout);
+            
+            // Verificar se há usuário logado ao carregar a página
+            verificarLogin();
+        });
+    </script>
+</body>
+</html>
