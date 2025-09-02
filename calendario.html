@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Rotina - Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .calendar-controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .current-month {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e293b;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+        }
+
+        .legend-empty { background: rgba(255, 255, 255, 0.95); border: 2px solid #e5e7eb; }
+        .legend-low { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .legend-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .legend-high { background: linear-gradient(135deg, #10b981, #059669); }
+
+        .tabs {
+            display: flex;
+            gap: 30px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .calendar-day {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 15px;
+            min-height: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .calendar-day.completed-100 {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .calendar-day.completed-75-99 {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border-color: #22c55e;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+        }
+
+        .calendar-day.completed-50-74 {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .calendar-day.completed-25-49 {
+            background: linear-gradient(135deg, #fb923c, #ea580c);
+            color: white;
+            border-color: #fb923c;
+            box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+        }
+
+        .calendar-day.completed-1-24 {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .day-progress {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .routine-checklist {
+            margin: 20px 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item.checked {
+            background: #dcfce7;
+            border: 1px solid #10b981;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .checklist-item input[type="text"], .checklist-item input[type="number"] {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .progress-summary {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .progress-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 0 auto 10px;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1e293b;
+        }
+
+        .period-selector {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .period-selector label {
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        .period-selector select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">📅 Calendário de Rotina</div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('calendar')">📅 Calendário</button>
+                <button class="tab" onclick="switchTab('analytics')">📊 Análises</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h1>Bem-vindo ao seu Dashboard de Saúde!</h1>
+            <p>Acompanhe sua jornada diária e veja seu progresso evoluir</p>
+        </div>
+
+        <!-- Aba Calendário -->
+        <div class="tab-content active" id="calendar-tab">
+            <div class="calendar-controls">
+                <div class="calendar-nav">
+                    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+                    <div class="current-month" id="currentMonth"></div>
+                    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-empty"></div>
+                        <span>Sem dados</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-low"></div>
+                        <span>Baixa (1-49%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-medium"></div>
+                        <span>Média (50-74%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-high"></div>
+                        <span>Alta (75-100%)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calendar-grid" id="calendar">
+                <div class="calendar-header">Dom</div>
+                <div class="calendar-header">Seg</div>
+                <div class="calendar-header">Ter</div>
+                <div class="calendar-header">Qua</div>
+                <div class="calendar-header">Qui</div>
+                <div class="calendar-header">Sex</div>
+                <div class="calendar-header">Sáb</div>
+            </div>
+        </div>
+
+        <!-- Aba Análises -->
+        <div class="tab-content" id="analytics-tab">
+            <div class="period-selector">
+                <label>Período:</label>
+                <select id="chartPeriod" onchange="updateCharts()">
+                    <option value="7">Últimos 7 dias</option>
+                    <option value="30" selected>Últimos 30 dias</option>
+                    <option value="month">Mês Atual</option>
+                    <option value="year">Ano Atual</option>
+                </select>
+            </div>
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3 class="chart-title">Evolução do Peso</h3>
+                    <canvas id="weightChart" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Controle de Calorias</h3>
+                    <canvas id="caloriesChart" width="400" height="300"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Aderência à Rotina</h3>
+                    <canvas id="adherenceChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para detalhes do dia -->
+    <div class="modal" id="dayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalDate">Dia X</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="routine-checklist" id="routineChecklist">
+                <!-- Checklist será preenchido dinamicamente -->
+            </div>
+            <div class="progress-summary">
+                <div class="progress-circle" id="progressCircle">0%</div>
+                <p>Progresso do dia</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userConfig = {};
+        let dailyData = {};
+        let currentDate = new Date(); // Data atual para navegação
+        
+        // Carregar configuração do usuário
+        const savedConfig = localStorage.getItem('userConfig');
+        if (savedConfig) {
+            userConfig = JSON.parse(savedConfig);
+        } else {
+            // Configuração padrão para demonstração
+            userConfig = {
+                nome: "Usuário Demo",
+                rotina: {
+                    pesagemDiaria: true,
+                    metaCalorias: true,
+                    exercicios: true,
+                    hidratacao: true,
+                    leitura: true,
+                    refeicoes: 5
+                }
+            };
+        }
+        
+        // Carregar dados salvos ou criar dados de demonstração
+        const savedData = localStorage.getItem('calendarioRotinaData');
+        if (savedData) {
+            dailyData = JSON.parse(savedData);
+        } else {
+            // Gerar alguns dados de exemplo
+            generateSampleData();
+        }
+
+        function generateSampleData() {
+            const today = new Date();
+            for (let i = 0; i < 60; i++) { // Gerar dados para 60 dias
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dayKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                
+                // Simular dados aleatórios
+                dailyData[dayKey] = {
+                    peso: Math.random() > 0.3 ? (70 + Math.random() * 10).toFixed(1) : null,
+                    calorias: Math.random() > 0.4 ? Math.floor(1600 + Math.random() * 800) : null,
+                    exercicios: Math.random() > 0.3,
+                    hidratacao: Math.random() > 0.2,
+                    leitura: Math.random() > 0.4,
+                    refeicao1: Math.random() > 0.1,
+                    refeicao2: Math.random() > 0.3,
+                    refeicao3: Math.random() > 0.1,
+                    refeicao4: Math.random() > 0.4,
+                    refeicao5: Math.random() > 0.2
+                };
+            }
+        }
+
+        function switchTab(tabName) {
+            // Atualizar botões
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Mostrar conteúdo
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'analytics') {
+                setTimeout(updateCharts, 100);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            updateCurrentMonthDisplay();
+            generateCalendar();
+        }
+
+        function updateCurrentMonthDisplay() {
+            const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            
+            document.getElementById('currentMonth').textContent = 
+                `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        }
+
+        function generateCalendar() {
+            const calendar = document.getElementById('calendar');
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            // Limpar calendário existente (exceto headers)
+            const existingDays = calendar.querySelectorAll('.calendar-day, div:not(.calendar-header)');
+            existingDays.forEach(day => {
+                if (!day.classList.contains('calendar-header')) {
+                    day.remove();
+                }
+            });
+            
+            // Adicionar dias em branco no início
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                calendar.appendChild(emptyDay);
+            }
+            
+            // Adicionar dias do mês
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.onclick = () => openDayModal(day);
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                
+                const dayProgress = document.createElement('div');
+                dayProgress.className = 'day-progress';
+                
+                // Calcular progresso do dia
+                const dayKey = `${currentYear}-${currentMonth + 1}-${day}`;
+                const progress = calculateDayProgress(dayKey);
+                dayProgress.textContent = `${progress}% concluído`;
+                
+                // Definir cor de fundo baseada no progresso
+                if (progress === 100) {
+                    dayElement.classList.add('completed-100');
+                } else if (progress >= 75) {
+                    dayElement.classList.add('completed-75-99');
+                } else if (progress >= 50) {
+                    dayElement.classList.add('completed-50-74');
+                } else if (progress >= 25) {
+                    dayElement.classList.add('completed-25-49');
+                } else if (progress > 0) {
+                    dayElement.classList.add('completed-1-24');
+                }
+                
+                dayElement.appendChild(dayNumber);
+                dayElement.appendChild(dayProgress);
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function calculateDayProgress(dayKey) {
+            const dayData = dailyData[dayKey] || {};
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            // Contar tarefas baseadas na configuração do usuário
+            if (userConfig.rotina) {
+                if (userConfig.rotina.pesagemDiaria) {
+                    totalTasks++;
+                    if (dayData.peso) completedTasks++;
+                }
+                if (userConfig.rotina.metaCalorias) {
+                    totalTasks++;
+                    if (dayData.calorias) completedTasks++;
+                }
+                if (userConfig.rotina.exercicios) {
+                    totalTasks++;
+                    if (dayData.exercicios) completedTasks++;
+                }
+                if (userConfig.rotina.hidratacao) {
+                    totalTasks++;
+                    if (dayData.hidratacao) completedTasks++;
+                }
+                if (userConfig.rotina.leitura) {
+                    totalTasks++;
+                    if (dayData.leitura) completedTasks++;
+                }
+                
+                // Refeições
+                const numRefeicoes = userConfig.rotina.refeicoes || 5;
+                totalTasks += numRefeicoes;
+                for (let i = 1; i <= numRefeicoes; i++) {
+                    if (dayData[`refeicao${i}`]) completedTasks++;
+                }
+            }
+            
+            return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        }
+
+        function openDayModal(day) {
+            const dayKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
+            
+            document.getElementById('modalDate').textContent = 
+                `${day} de ${currentDate.toLocaleString('pt-BR', { month: 'long' })} de ${currentDate.getFullYear()}`;
+            
+            const checklist = document.getElementById('routineChecklist');
+            checklist.innerHTML = '';
+            
+            const dayData = dailyData[dayKey] || {};
+            
+            // Gerar checklist baseado na configuração
+            if (userConfig.rotina) {
+                if (userConfig.rotina.pesagemDiaria) {
+                    checklist.appendChild(createChecklistItem(
+                        '⚖️ Registrar Peso',
+                        'peso',
+                        'number',
+                        dayKey,
+                        dayData.peso,
+                        'kg'
+                    ));
+                }
+                
+                if (userConfig.rotina.metaCalorias) {
+                    checklist.appendChild(createChecklistItem(
+                        '🔥 Meta de Calorias',
+                        'calorias',
+                        'number',
+                        dayKey,
+                        dayData.calorias,
+                        'kcal'
+                    ));
+                }
+                
+                if (userConfig.rotina.exercicios) {
+                    checklist.appendChild(createChecklistItem(
+                        '🏃‍♂️ Exercícios',
+                        'exercicios',
+                        'checkbox',
+                        dayKey,
+                        dayData.exercicios
+                    ));
+                }
+                
+                if (userConfig.rotina.hidratacao) {
+                    checklist.appendChild(createChecklistItem(
+                        '💧 Hidratação',
+                        'hidratacao',
+                        'checkbox',
+                        dayKey,
+                        dayData.hidratacao
+                    ));
+                }
+                
+                if (userConfig.rotina.leitura) {
+                    checklist.appendChild(createChecklistItem(
+                        '📚 Leitura',
+                        'leitura',
+                        'checkbox',
+                        dayKey,
+                        dayData.leitura
+                    ));
+                }
+                
+                // Refeições
+                const refeicoes = ['Café da Manhã', 'Lanche da Manhã', 'Almoço', 'Lanche da Tarde', 'Jantar', 'Ceia'];
+                const numRefeicoes = userConfig.rotina.refeicoes || 5;
+                
+                for (let i = 1; i <= numRefeicoes; i++) {
+                    checklist.appendChild(createChecklistItem(
+                        `🍽️ ${refeicoes[i-1] || `Refeição ${i}`}`,
+                        `refeicao${i}`,
+                        'checkbox',
+                        dayKey,
+                        dayData[`refeicao${i}`]
+                    ));
+                }
+            }
+            
+            updateProgressCircle(dayKey);
+            document.getElementById('dayModal').classList.add('active');
+        }
+
+        function createChecklistItem(label, key, type, dayKey, value, unit = '') {
+            const item = document.createElement('div');
+            item.className = 'checklist-item';
+            
+            if (type === 'checkbox') {
+                item.innerHTML = `
+                    <input type="checkbox" id="${key}" ${value ? 'checked' : ''} 
+                           onchange="updateDayData('${dayKey}', '${key}', this.checked)">
+                    <label for="${key}">${label}</label>
+                `;
+                if (value) item.classList.add('checked');
+            } else {
+                item.innerHTML = `
+                    <span>${label}:</span>
+                    <input type="${type}" value="${value || ''}" placeholder="0" ${unit ? `data-unit="${unit}"` : ''}
+                           onchange="updateDayData('${dayKey}', '${key}', this.value)">
+                    ${unit ? `<span>${unit}</span>` : ''}
+                `;
+                if (value) item.classList.add('checked');
+            }
+            
+            return item;
+        }
+
+        function updateDayData(dayKey, key, value) {
+            if (!dailyData[dayKey]) {
+                dailyData[dayKey] = {};
+            }
+            
+            dailyData[dayKey][key] = value;
+            localStorage.setItem('calendarioRotinaData', JSON.stringify(dailyData));
+            
+            updateProgressCircle(dayKey);
+            generateCalendar(); // Atualizar cores do calendário
+            
+            // Atualizar estilo do item
+            const item = event.target.closest('.checklist-item');
+            if (value && value !== '' && value !== false) {
+                item.classList.add('checked');
+            } else {
+                item.classList.remove('checked');
+            }
+        }
+
+        function updateProgressCircle(dayKey) {
+            const progress = calculateDayProgress(dayKey);
+            const circle = document.getElementById('progressCircle');
+            circle.textContent = `${progress}%`;
+            
+            if (progress === 100) {
+                circle.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                circle.style.color = 'white';
+            } else if (progress >= 75) {
+                circle.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                circle.style.color = 'white';
+            } else if (progress >= 50) {
+                circle.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                circle.style.color = 'white';
+            } else if (progress >= 25) {
+                circle.style.background = 'linear-gradient(135deg, #fb923c, #ea580c)';
+                circle.style.color = 'white';
+            } else if (progress > 0) {
+                circle.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                circle.style.color = 'white';
+            } else {
+                circle.style.background = '#e5e7eb';
+                circle.style.color = '#64748b';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('dayModal').classList.remove('active');
+        }
+
+        function updateCharts() {
+            const period = document.getElementById('chartPeriod').value;
+
+            // Limpar gráficos existentes
+            const weightCtx = document.getElementById('weightChart');
+            const caloriesCtx = document.getElementById('caloriesChart');
+            const adherenceCtx = document.getElementById('adherenceChart');
+            
+            if (weightCtx.chart) {
+                weightCtx.chart.destroy();
+            }
+            if (caloriesCtx.chart) {
+                caloriesCtx.chart.destroy();
+            }
+            if (adherenceCtx.chart) {
+                adherenceCtx.chart.destroy();
+            }
+            
+            // Gráfico de Peso
+            if (weightCtx) {
+                const weightData = getWeightData(period);
+                
+                weightCtx.chart = new Chart(weightCtx, {
+                    type: 'line',
+                    data: {
+                        labels: weightData.labels,
+                        datasets: [{
+                            label: 'Peso (kg)',
+                            data: weightData.values,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            spanGaps: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de Calorias
+            if (caloriesCtx && userConfig.rotina && userConfig.rotina.metaCalorias) {
+                const caloriesData = getCaloriesData(period);
+                
+                caloriesCtx.chart = new Chart(caloriesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: caloriesData.labels,
+                        datasets: [{
+                            label: 'Calorias Consumidas',
+                            data: caloriesData.values,
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: '#22c55e',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }, {
+                            label: 'Meta (2000 kcal)',
+                            data: caloriesData.meta,
+                            type: 'line',
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gráfico de Aderência
+            if (adherenceCtx) {
+                const adherenceData = getAdherenceData(period);
+                
+                adherenceCtx.chart = new Chart(adherenceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: adherenceData.labels,
+                        datasets: [{
+                            label: 'Aderência (%)',
+                            data: adherenceData.values,
+                            backgroundColor: adherenceData.colors,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function getPeriodDates(period) {
+            const today = new Date();
+            let startDate = new Date(today);
+            let endDate = new Date(today);
+
+            if (period === '7' || period === '30') {
+                const days = parseInt(period);
+                startDate.setDate(startDate.getDate() - days + 1);
+            } else if (period === 'month') {
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            } else if (period === 'year') {
+                startDate = new Date(today.getFullYear(), 0, 1);
+            }
+
+            return { startDate, endDate };
+        }
+
+        function getWeightData(period) {
+            const { startDate, endDate } = getPeriodDates(period);
+            const labels = [];
+            const values = [];
+
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dayKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                const label = (period === '7') ? d.toLocaleDateString('pt-BR', { weekday: 'short' }) :
+                              (period === 'year') ? d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }) :
+                              d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                labels.push(label);
+                values.push(dailyData[dayKey]?.peso ? parseFloat(dailyData[dayKey].peso) : null);
+            }
+
+            return { labels, values };
+        }
+
+        function getCaloriesData(period) {
+            const { startDate, endDate } = getPeriodDates(period);
+            const labels = [];
+            const values = [];
+            const meta = [];
+
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dayKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                const label = (period === '7') ? d.toLocaleDateString('pt-BR', { weekday: 'short' }) :
+                              (period === 'year') ? d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }) :
+                              d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                labels.push(label);
+                values.push(dailyData[dayKey]?.calorias ? parseInt(dailyData[dayKey].calorias) : 0);
+                meta.push(2000); // Meta fixa de 2000 calorias
+            }
+
+            return { labels, values, meta };
+        }
+
+        function getAdherenceData(period) {
+            const { startDate, endDate } = getPeriodDates(period);
+            const labels = [];
+            const values = [];
+            const colors = [];
+
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dayKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                const label = (period === '7') ? d.toLocaleDateString('pt-BR', { weekday: 'short' }) :
+                              (period === 'year') ? d.toLocaleDateString('pt-BR', { month: 'short', day: 'numeric' }) :
+                              d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                labels.push(label);
+                const progress = calculateDayProgress(dayKey);
+                values.push(progress);
+
+                if (progress === 100) {
+                    colors.push('#10b981');
+                } else if (progress >= 75) {
+                    colors.push('#22c55e');
+                } else if (progress >= 50) {
+                    colors.push('#f59e0b');
+                } else if (progress >= 25) {
+                    colors.push('#fb923c');
+                } else if (progress > 0) {
+                    colors.push('#ef4444');
+                } else {
+                    colors.push('#e5e7eb');
+                }
+            }
+
+            return { labels, values, colors };
+        }
+
+        // Inicializar página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentMonthDisplay();
+            generateCalendar();
+        });
+    </script>
+</body>
+</html>

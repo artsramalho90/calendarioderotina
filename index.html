@@ -3,996 +3,544 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendário de Acompanhamento</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Calendário de Rotina - Login</title>
     <style>
-        :root {
-            --verde-claro: #67BF7F;
-            --vermelho-claro: #E54646;
-            --cinza-claro: #f5f5f5;
-            --branco: #ffffff;
-            --sombra: rgba(0, 0, 0, 0.1);
-            --azul: #3498db;
-            --azul-escuro: #2980b9;
-        }
-        
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-sizing: border-box;
         }
-        
+
         body {
-            background-color: #f9f9f9;
-            padding: 20px;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        
-        .container {
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: var(--branco);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px var(--sombra);
-            padding: 20px;
-            position: relative;
+            max-width: 500px;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
         }
-        
-        .tela-login, .tela-cadastro {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .tela-login h2, .tela-cadastro h2 {
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px;
             text-align: center;
-            margin-bottom: 20px;
-            color: #2c3e50;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 20%, transparent 21%);
+            background-size: 40px 40px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-40px, -40px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .intro-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .intro-title {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .intro-text {
+            color: #64748b;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .login-form {
+            padding: 40px;
+        }
+
         .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
             margin-bottom: 15px;
         }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
-        
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
         }
-        
-        .btn {
-            padding: 10px 15px;
-            background-color: var(--azul);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 16px;
-            width: 100%;
+
+        .btn-secondary:hover {
+            background: #d1d5db;
         }
-        
-        .btn:hover {
-            background-color: var(--azul-escuro);
-        }
-        
-        .link-btn {
-            background: none;
-            border: none;
-            color: var(--azul);
-            text-decoration: underline;
-            cursor: pointer;
-            margin-top: 10px;
-            display: block;
+
+        .forgot-password {
             text-align: center;
-            width: 100%;
+            margin: 20px 0;
         }
-        
-        .app {
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #4f46e5;
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: #64748b;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider span {
+            padding: 0 20px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid #fecaca;
             display: none;
         }
-        
-        header {
+
+        .success-message {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid #bbf7d0;
+            display: none;
+        }
+
+        /* Modal para Esqueci Senha */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
             text-align: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
         }
-        
-        h1 {
-            color: #2c3e50;
+
+        .modal-header h3 {
+            color: #1e293b;
             margin-bottom: 10px;
         }
-        
-        .user-info {
+
+        .modal-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .close-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .abas {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .aba {
-            padding: 10px 20px;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .aba.ativa {
-            border-bottom: 3px solid var(--azul);
-            color: var(--azul);
-            font-weight: bold;
-        }
-        
-        .conteudo-aba {
-            display: none;
-        }
-        
-        .conteudo-aba.ativa {
-            display: block;
-        }
-        
-        .controles {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .mes-ano {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--azul);
-        }
-        
-        .calendario {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .dia-semana {
-            text-align: center;
-            font-weight: bold;
-            padding: 10px;
-            background-color: var(--azul);
-            color: white;
-            border-radius: 4px;
-        }
-        
-        .dia {
-            background-color: var(--cinza-claro);
-            border-radius: 8px;
-            padding: 10px;
-            min-height: 150px;
-            position: relative;
-            transition: background-color 0.3s;
-        }
-        
-        .dia.domingo {
-            background-color: #ffebee;
-        }
-        
-        .dia.verde {
-            background-color: var(--verde-claro);
-        }
-        
-        .dia.vermelho {
-            background-color: var(--vermelho-claro);
-        }
-        
-        .numero-dia {
-            font-weight: bold;
-            margin-bottom: 5px;
-            text-align: center;
-            font-size: 1.2rem;
-        }
-        
-        .peso-input {
-            width: 100%;
+            color: #64748b;
             padding: 5px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
         }
-        
-        .checkboxes {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.8rem;
-        }
-        
-        .checkbox-item input {
-            margin-right: 5px;
-        }
-        
-        .acoes {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .file-input {
+
+        .loading {
             display: none;
-        }
-        
-        .file-label {
-            padding: 8px 15px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        .file-label:hover {
-            background-color: #27ae60;
-        }
-        
-        .logout-btn {
-            padding: 5px 10px;
-            background-color: var(--vermelho-claro);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .graficos {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-        
-        .grafico-container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .grafico-container h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
             text-align: center;
+            margin: 20px 0;
         }
-        
-        canvas {
-            width: 100% !important;
-            height: 300px !important;
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-        
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
-            .calendario {
-                grid-template-columns: repeat(2, 1fr);
+            .login-container {
+                margin: 10px;
             }
             
-            .dia-semana {
-                display: none;
+            .header {
+                padding: 30px 20px;
             }
             
-            .dia {
-                min-height: 120px;
+            .header h1 {
+                font-size: 2rem;
             }
             
-            .user-info {
-                position: static;
-                justify-content: center;
-                margin-bottom: 15px;
-            }
-            
-            .abas {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .calendario {
-                grid-template-columns: 1fr;
-            }
-            
-            .controles {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .acoes {
-                flex-direction: column;
-            }
-            
-            button, .file-label {
-                width: 100%;
+            .intro-section,
+            .login-form {
+                padding: 30px 20px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Tela de Login -->
-        <div class="tela-login" id="tela-login">
-            <h2>Login</h2>
-            <div class="form-group">
-                <label for="login-email">E-mail</label>
-                <input type="email" id="login-email" placeholder="Seu e-mail">
-            </div>
-            <div class="form-group">
-                <label for="login-senha">Senha</label>
-                <input type="password" id="login-senha" placeholder="Sua senha">
-            </div>
-            <button class="btn" id="btn-login">Entrar</button>
-            <button class="link-btn" id="btn-ir-cadastro">Não tem conta? Cadastre-se</button>
+    <div class="login-container">
+        <div class="header">
+            <h1>📅 Calendário de Rotina</h1>
+            <p>Sua Jornada Saudável Diária</p>
         </div>
-        
-        <!-- Tela de Cadastro -->
-        <div class="tela-cadastro" id="tela-cadastro" style="display: none;">
-            <h2>Criar Conta</h2>
-            <div class="form-group">
-                <label for="cadastro-email">E-mail</label>
-                <input type="email" id="cadastro-email" placeholder="Seu e-mail">
-            </div>
-            <div class="form-group">
-                <label for="cadastro-senha">Senha</label>
-                <input type="password" id="cadastro-senha" placeholder="Crie uma senha">
-            </div>
-            <div class="form-group">
-                <label for="cadastro-confirmar-senha">Confirmar Senha</label>
-                <input type="password" id="cadastro-confirmar-senha" placeholder="Confirme sua senha">
-            </div>
-            <button class="btn" id="btn-cadastrar">Cadastrar</button>
-            <button class="link-btn" id="btn-ir-login">Já tem conta? Faça login</button>
+
+        <div class="intro-section">
+            <h2 class="intro-title">Bem-vindo ao Calendário de Rotina!</h2>
+            <p class="intro-text">
+                Aqui, você transforma sua rotina em um hábito poderoso para uma vida mais saudável e equilibrada. 
+                Planeje suas refeições nutritivas, sessões de exercícios revigorantes, momentos de leitura para exercitar a mente, 
+                hidratação constante e muito mais – tudo em um calendário intuitivo e personalizado.
+                <br><br>
+                Faça login para começar sua jornada rumo a uma saúde melhor e a hábitos que duram para sempre. 
+                Vamos tornar o bem-estar parte do seu dia a dia!
+            </p>
         </div>
-        
-        <!-- Aplicação Principal -->
-        <div class="app" id="app">
-            <div class="user-info">
-                <span id="user-email"></span>
-                <button class="logout-btn" id="btn-logout">Sair</button>
+
+        <div class="login-form">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Entrar 🚀
+                </button>
+            </form>
+
+            <div class="forgot-password">
+                <a href="#" onclick="openForgotPasswordModal()">Esqueci minha senha</a>
             </div>
-            
-            <header>
-                <h1>Calendário de Acompanhamento</h1>
-                <p>Registre seu peso e hábitos diários</p>
-            </header>
-            
-            <div class="abas">
-                <div class="aba ativa" data-aba="calendario">Calendário</div>
-                <div class="aba" data-aba="graficos">Gráficos</div>
+
+            <div class="divider">
+                <span>ou</span>
             </div>
-            
-            <!-- Aba do Calendário -->
-            <div class="conteudo-aba ativa" id="aba-calendario">
-                <div class="controles">
-                    <button id="btn-mes-anterior">Mês Anterior</button>
-                    <div class="mes-ano" id="mes-ano">Junho 2023</div>
-                    <button id="btn-proximo-mes">Próximo Mês</button>
-                </div>
-                
-                <div class="calendario" id="calendario">
-                    <!-- Os dias da semana -->
-                    <div class="dia-semana">Dom</div>
-                    <div class="dia-semana">Seg</div>
-                    <div class="dia-semana">Ter</div>
-                    <div class="dia-semana">Qua</div>
-                    <div class="dia-semana">Qui</div>
-                    <div class="dia-semana">Sex</div>
-                    <div class="dia-semana">Sáb</div>
-                    
-                    <!-- Os dias do mês serão inseridos aqui via JavaScript -->
-                </div>
-                
-                <div class="acoes">
-                    <button id="btn-salvar">Salvar Dados (JSON)</button>
-                    <input type="file" id="file-input" class="file-input" accept=".json">
-                    <label for="file-input" class="file-label">Carregar Dados</label>
-                </div>
-            </div>
-            
-            <!-- Aba de Gráficos -->
-            <div class="conteudo-aba" id="aba-graficos">
-                <div class="graficos">
-                    <div class="grafico-container">
-                        <h3>Evolução do Peso</h3>
-                        <canvas id="grafico-peso"></canvas>
-                    </div>
-                    
-                    <div class="grafico-container">
-                        <h3>Aderência à Rotina</h3>
-                        <canvas id="grafico-aderencia"></canvas>
-                    </div>
-                </div>
+
+            <button type="button" class="btn btn-secondary" onclick="goToSignup()">
+                Criar Nova Conta
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Entrando...</p>
             </div>
         </div>
     </div>
 
+    <!-- Modal Esqueci Senha -->
+    <div class="modal" id="forgotPasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Recuperar Senha</h3>
+                <p>Digite seu e-mail e enviaremos instruções para redefinir sua senha.</p>
+            </div>
+            
+            <form id="forgotPasswordForm">
+                <div class="form-group">
+                    <label for="forgotEmail">E-mail</label>
+                    <input type="email" id="forgotEmail" name="forgotEmail" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    Enviar Instruções
+                </button>
+                
+                <button type="button" class="btn btn-secondary" onclick="closeForgotPasswordModal()" style="margin-top: 10px;">
+                    Cancelar
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos do DOM
-            const telaLogin = document.getElementById('tela-login');
-            const telaCadastro = document.getElementById('tela-cadastro');
-            const app = document.getElementById('app');
-            const btnIrCadastro = document.getElementById('btn-ir-cadastro');
-            const btnIrLogin = document.getElementById('btn-ir-login');
-            const btnLogin = document.getElementById('btn-login');
-            const btnCadastrar = document.getElementById('btn-cadastrar');
-            const btnLogout = document.getElementById('btn-logout');
-            const userEmailSpan = document.getElementById('user-email');
-            const abas = document.querySelectorAll('.aba');
-            const conteudosAbas = document.querySelectorAll('.conteudo-aba');
-            
-            const calendarioEl = document.getElementById('calendario');
-            const mesAnoEl = document.getElementById('mes-ano');
-            const btnMesAnterior = document.getElementById('btn-mes-anterior');
-            const btnProximoMes = document.getElementById('btn-proximo-mes');
-            const btnSalvar = document.getElementById('btn-salvar');
-            const fileInput = document.getElementById('file-input');
-            
-            // Data atual
-            let dataAtual = new Date();
-            let dados = {};
-            let usuarioLogado = null;
-            let graficoPeso = null;
-            let graficoAderencia = null;
-            
-            // Verificar se há usuário logado
-            function verificarLogin() {
-                const usuario = localStorage.getItem('usuarioLogado');
-                if (usuario) {
-                    usuarioLogado = JSON.parse(usuario);
-                    userEmailSpan.textContent = usuarioLogado.email;
-                    telaLogin.style.display = 'none';
-                    telaCadastro.style.display = 'none';
-                    app.style.display = 'block';
-                    
-                    // Carregar dados do usuário
-                    const dadosUsuario = localStorage.getItem(`dados_${usuarioLogado.email}`);
-                    if (dadosUsuario) {
-                        dados = JSON.parse(dadosUsuario);
-                    }
-                    
-                    inicializarCalendario();
-                }
-            }
-            
-            // Inicializar o calendário
-            function inicializarCalendario() {
-                atualizarCalendario();
-                preencherDadosSalvos();
-            }
-            
-            // Atualizar o calendário com o mês e ano atuais
-            function atualizarCalendario() {
-                // Limpar dias existentes (exceto os cabeçalhos dos dias da semana)
-                while (calendarioEl.children.length > 7) {
-                    calendarioEl.removeChild(calendarioEl.lastChild);
-                }
-                
-                // Atualizar o título do mês e ano
-                const meses = [
-                    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                    'Julio', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-                ];
-                mesAnoEl.textContent = `${meses[dataAtual.getMonth()]} ${dataAtual.getFullYear()}`;
-                
-                // Obter o primeiro dia do mês e o número de dias no mês
-                const primeiroDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), 1);
-                const ultimoDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth() + 1, 0);
-                const diasNoMes = ultimoDia.getDate();
-                
-                // Adicionar células vazias para os dias antes do primeiro dia do mês
-                for (let i = 0; i < primeiroDia.getDay(); i++) {
-                    const celulaVazia = document.createElement('div');
-                    celulaVazia.classList.add('dia', 'vazio');
-                    calendarioEl.appendChild(celulaVazia);
-                }
-                
-                // Adicionar os dias do mês
-                for (let i = 1; i <= diasNoMes; i++) {
-                    const dia = document.createElement('div');
-                    const dataStr = formatarData(new Date(dataAtual.getFullYear(), dataAtual.getMonth(), i));
-                    
-                    // Verificar se é domingo
-                    const dataDia = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), i);
-                    if (dataDia.getDay() === 0) {
-                        dia.classList.add('dia', 'domingo');
-                    } else {
-                        dia.classList.add('dia');
-                    }
-                    
-                    dia.innerHTML = `
-                        <div class="numero-dia">${i}</div>
-                        <input type="number" class="peso-input" placeholder="Peso (kg)" step="0.1" data-data="${dataStr}" data-tipo="peso">
-                        <div class="checkboxes">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-cafe" data-data="${dataStr}" data-tipo="cafe">
-                                <label for="${dataStr}-cafe">Café</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-lanche1" data-data="${dataStr}" data-tipo="lanche1">
-                                <label for="${dataStr}-lanche1">Lanche 1</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-almoco" data-data="${dataStr}" data-tipo="almoco">
-                                <label for="${dataStr}-almoco">Almoço</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-lanche2" data-data="${dataStr}" data-tipo="lanche2">
-                                <label for="${dataStr}-lanche2">Lanche 2</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-jantar" data-data="${dataStr}" data-tipo="jantar">
-                                <label for="${dataStr}-jantar">Jantar</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${dataStr}-treino" data-data="${dataStr}" data-tipo="treino">
-                                <label for="${dataStr}-treino">Treino</label>
-                            </div>
-                        </div>
-                    `;
-                    
-                    calendarioEl.appendChild(dia);
-                    
-                    // Adicionar event listeners para os inputs
-                    const inputs = dia.querySelectorAll('input');
-                    inputs.forEach(input => {
-                        input.addEventListener('change', atualizarEstadoDia);
-                    });
-                }
-                
-                // Preencher com dados salvos se existirem
-                preencherDadosSalvos();
-            }
-            
-            // Formatar data como string (YYYY-MM-DD)
-            function formatarData(data) {
-                const ano = data.getFullYear();
-                const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-                const dia = data.getDate().toString().padStart(2, '0');
-                return `${ano}-${mes}-${dia}`;
-            }
-            
-            // Preencher os dados salvos nos inputs
-            function preencherDadosSalvos() {
-                for (const dataStr in dados) {
-                    const diaData = dados[dataStr];
-                    
-                    // Encontrar o input de peso para esta data
-                    const pesoInput = document.querySelector(`.peso-input[data-data="${dataStr}"]`);
-                    if (pesoInput && diaData.peso !== undefined) {
-                        pesoInput.value = diaData.peso;
-                    }
-                    
-                    // Preencher as checkboxes
-                    const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
-                    tipos.forEach(tipo => {
-                        const checkbox = document.querySelector(`input[data-data="${dataStr}"][data-tipo="${tipo}"]`);
-                        if (checkbox && diaData[tipo] !== undefined) {
-                            checkbox.checked = diaData[tipo];
-                        }
-                    });
-                    
-                    // Atualizar o estado visual do dia
-                    atualizarEstadoVisualDia(dataStr);
-                }
-            }
-            
-            // Atualizar o estado visual do dia (verde/vermelho)
-            function atualizarEstadoDia(e) {
-                const input = e.target;
-                const dataStr = input.dataset.data;
-                const tipo = input.dataset.tipo;
-                
-                // Inicializar o objeto para esta data se não existir
-                if (!dados[dataStr]) {
-                    dados[dataStr] = {};
-                }
-                
-                // Atualizar o valor
-                if (tipo === 'peso') {
-                    dados[dataStr][tipo] = input.value ? parseFloat(input.value) : undefined;
-                } else {
-                    dados[dataStr][tipo] = input.checked;
-                }
-                
-                // Atualizar o estado visual
-                atualizarEstadoVisualDia(dataStr);
-                
-                // Salvar os dados no localStorage
-                salvarDadosUsuario();
-                
-                // Atualizar gráficos se estiverem visíveis
-                if (document.getElementById('aba-graficos').classList.contains('ativa')) {
-                    atualizarGraficos();
-                }
-            }
-            
-            // Atualizar a cor de fundo do dia com base nos dados
-            function atualizarEstadoVisualDia(dataStr) {
-                const diaData = dados[dataStr];
-                if (!diaData) return;
-                
-                // Encontrar o elemento do dia
-                const pesoInput = document.querySelector(`.peso-input[data-data="${dataStr}"]`);
-                if (!pesoInput) return;
-                
-                const diaEl = pesoInput.closest('.dia');
-                
-                // Verificar se todos os campos estão preenchidos corretamente
-                const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
-                const todosPreenchidos = tipos.every(tipo => diaData[tipo] !== undefined && diaData[tipo] === true);
-                const pesoPreenchido = diaData.peso !== undefined;
-                
-                // Remover classes de cor existentes
-                diaEl.classList.remove('verde', 'vermelho');
-                
-                // Aplicar a cor com base no preenchimento
-                if (todosPreenchidos && pesoPreenchido) {
-                    diaEl.classList.add('verde');
-                } else if (!todosPreenchidos && pesoPreenchido) {
-                    diaEl.classList.add('vermelho');
-                }
-            }
-            
-            // Salvar dados do usuário no localStorage
-            function salvarDadosUsuario() {
-                if (usuarioLogado) {
-                    localStorage.setItem(`dados_${usuarioLogado.email}`, JSON.stringify(dados));
-                }
-            }
-            
-            // Salvar dados em um arquivo JSON
-            function salvarDadosArquivo() {
-                const dadosParaSalvar = JSON.stringify(dados, null, 2);
-                const blob = new Blob([dadosParaSalvar], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `acompanhamento-${formatarData(dataAtual)}.json`;
-                document.body.appendChild(a);
-                a.click();
-                
-                // Limpar
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 100);
-            }
-            
-            // Carregar dados de um arquivo JSON
-            function carregarDadosArquivo(arquivo) {
-                const leitor = new FileReader();
-                
-                leitor.onload = function(e) {
-                    try {
-                        const dadosCarregados = JSON.parse(e.target.result);
-                        dados = dadosCarregados;
-                        salvarDadosUsuario();
-                        preencherDadosSalvos();
-                        
-                        // Atualizar gráficos se estiverem visíveis
-                        if (document.getElementById('aba-graficos').classList.contains('ativa')) {
-                            atualizarGraficos();
-                        }
-                        
-                        alert('Dados carregados com sucesso!');
-                    } catch (erro) {
-                        alert('Erro ao carregar o arquivo. Certifique-se de que é um JSON válido.');
-                        console.error(erro);
-                    }
-                };
-                
-                leitor.readAsText(arquivo);
-            }
-            
-            // Atualizar gráficos
-            function atualizarGraficos() {
-                // Preparar dados para o gráfico de peso
-                const dadosPeso = [];
-                const labelsPeso = [];
-                
-                // Preparar dados para o gráfico de aderência
-                const dadosAderencia = [];
-                const labelsAderencia = [];
-                
-                // Coletar dados organizados por data
-                const datasOrdenadas = Object.keys(dados).sort();
-                
-                for (const data of datasOrdenadas) {
-                    const diaData = dados[data];
-                    
-                    // Adicionar ao gráfico de peso se houver peso registrado
-                    if (diaData.peso !== undefined) {
-                        dadosPeso.push(diaData.peso);
-                        labelsPeso.push(data);
-                    }
-                    
-                    // Calcular aderência (percentual de hábitos completados)
-                    if (diaData.peso !== undefined) {
-                        const tipos = ['cafe', 'lanche1', 'almoco', 'lanche2', 'jantar', 'treino'];
-                        const completados = tipos.filter(tipo => diaData[tipo] === true).length;
-                        const percentual = (completados / tipos.length) * 100;
-                        
-                        dadosAderencia.push(percentual);
-                        labelsAderencia.push(data);
-                    }
-                }
-                
-                // Atualizar ou criar gráfico de peso
-                const ctxPeso = document.getElementById('grafico-peso').getContext('2d');
-                if (graficoPeso) {
-                    graficoPeso.destroy();
-                }
-                
-                if (dadosPeso.length > 0) {
-                    graficoPeso = new Chart(ctxPeso, {
-                        type: 'line',
-                        data: {
-                            labels: labelsPeso,
-                            datasets: [{
-                                label: 'Peso (kg)',
-                                data: dadosPeso,
-                                borderColor: '#3498db',
-                                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.3
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Evolução do Peso'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: false,
-                                    title: {
-                                        display: true,
-                                        text: 'Peso (kg)'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Data'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    ctxPeso.clearRect(0, 0, ctxPeso.canvas.width, ctxPeso.canvas.height);
-                    ctxPeso.font = "16px Arial";
-                    ctxPeso.fillStyle = "#999";
-                    ctxPeso.textAlign = "center";
-                    ctxPeso.fillText("Nenhum dado de peso disponível", ctxPeso.canvas.width / 2, ctxPeso.canvas.height / 2);
-                }
-                
-                // Atualizar ou criar gráfico de aderência
-                const ctxAderencia = document.getElementById('grafico-aderencia').getContext('2d');
-                if (graficoAderencia) {
-                    graficoAderencia.destroy();
-                }
-                
-                if (dadosAderencia.length > 0) {
-                    graficoAderencia = new Chart(ctxAderencia, {
-                        type: 'line',
-                        data: {
-                            labels: labelsAderencia,
-                            datasets: [{
-                                label: 'Aderência (%)',
-                                data: dadosAderencia,
-                                borderColor: '#67BF7F',
-                                backgroundColor: 'rgba(103, 191, 127, 0.1)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.3
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Aderência à Rotina'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    max: 100,
-                                    title: {
-                                        display: true,
-                                        text: 'Percentual de Aderência (%)'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Data'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    ctxAderencia.clearRect(0, 0, ctxAderencia.canvas.width, ctxAderencia.canvas.height);
-                    ctxAderencia.font = "16px Arial";
-                    ctxAderencia.fillStyle = "#999";
-                    ctxAderencia.textAlign = "center";
-                    ctxAderencia.fillText("Nenhum dado de aderência disponível", ctxAderencia.canvas.width / 2, ctxAderencia.canvas.height / 2);
-                }
-            }
-            
-            // Funções de autenticação
-            function fazerLogin() {
-                const email = document.getElementById('login-email').value;
-                const senha = document.getElementById('login-senha').value;
-                
-                if (!email || !senha) {
-                    alert('Por favor, preencha todos os campos.');
-                    return;
-                }
-                
-                const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-                const usuario = usuarios.find(u => u.email === email && u.senha === senha);
-                
-                if (usuario) {
-                    usuarioLogado = usuario;
-                    localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
-                    userEmailSpan.textContent = usuario.email;
-                    
-                    // Carregar dados do usuário
-                    const dadosUsuario = localStorage.getItem(`dados_${usuario.email}`);
-                    if (dadosUsuario) {
-                        dados = JSON.parse(dadosUsuario);
-                    }
-                    
-                    telaLogin.style.display = 'none';
-                    app.style.display = 'block';
-                    inicializarCalendario();
-                } else {
-                    alert('E-mail ou senha incorretos.');
-                }
-            }
-            
-            function criarConta() {
-                const email = document.getElementById('cadastro-email').value;
-                const senha = document.getElementById('cadastro-senha').value;
-                const confirmarSenha = document.getElementById('cadastro-confirmar-senha').value;
-                
-                if (!email || !senha || !confirmarSenha) {
-                    alert('Por favor, preencha todos os campos.');
-                    return;
-                }
-                
-                if (senha !== confirmarSenha) {
-                    alert('As senhas não coincidem.');
-                    return;
-                }
-                
-                const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-                
-                if (usuarios.find(u => u.email === email)) {
-                    alert('Este e-mail já está cadastrado.');
-                    return;
-                }
-                
-                const novoUsuario = { email, senha };
-                usuarios.push(novoUsuario);
-                localStorage.setItem('usuarios', JSON.stringify(usuarios));
-                
-                alert('Conta criada com sucesso! Faça login para continuar.');
-                btnIrLogin.click();
-            }
-            
-            function fazerLogout() {
-                usuarioLogado = null;
-                localStorage.removeItem('usuarioLogado');
-                dados = {};
-                
-                app.style.display = 'none';
-                telaLogin.style.display = 'block';
-                
-                // Limpar campos de login
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-senha').value = '';
-            }
-            
-            // Alternar entre abas
-            abas.forEach(aba => {
-                aba.addEventListener('click', function() {
-                    const abaAlvo = this.dataset.aba;
-                    
-                    // Remover classe ativa de todas as abas
-                    abas.forEach(a => a.classList.remove('ativa'));
-                    conteudosAbas.forEach(c => c.classList.remove('ativa'));
-                    
-                    // Adicionar classe ativa à aba clicada
-                    this.classList.add('ativa');
-                    document.getElementById(`aba-${abaAlvo}`).classList.add('ativa');
-                    
-                    // Se for a aba de gráficos, atualizar os gráficos
-                    if (abaAlvo === 'graficos') {
-                        atualizarGraficos();
-                    }
-                });
+        // Simulação de dados de usuários (em um app real, isso seria no backend)
+        let users = JSON.parse(localStorage.getItem('calendarioRotinaUsers')) || [];
+        
+        // Adicionar usuário demo se não existir
+        if (users.length === 0) {
+            users.push({
+                email: 'demo@calendariorotina.com',
+                password: '123456',
+                nome: 'Usuário Demo'
             });
-            
-            // Event Listeners
-            btnMesAnterior.addEventListener('click', function() {
-                dataAtual.setMonth(dataAtual.getMonth() - 1);
-                atualizarCalendario();
-            });
-            
-            btnProximoMes.addEventListener('click', function() {
-                dataAtual.setMonth(dataAtual.getMonth() + 1);
-                atualizarCalendario();
-            });
-            
-            btnSalvar.addEventListener('click', salvarDadosArquivo);
-            
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    carregarDadosArquivo(this.files[0]);
-                }
-            });
-            
-            btnIrCadastro.addEventListener('click', function() {
-                telaLogin.style.display = 'none';
-                telaCadastro.style.display = 'block';
-            });
-            
-            btnIrLogin.addEventListener('click', function() {
-                telaCadastro.style.display = 'none';
-                telaLogin.style.display = 'block';
-            });
-            
-            btnLogin.addEventListener('click', fazerLogin);
-            
-            btnCadastrar.addEventListener('click', criarConta);
-            
-            btnLogout.addEventListener('click', fazerLogout);
-            
-            // Verificar se há usuário logado ao carregar a página
-            verificarLogin();
+            localStorage.setItem('calendarioRotinaUsers', JSON.stringify(users));
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleLogin();
         });
+
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleForgotPassword();
+        });
+
+        function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            hideMessages();
+            showLoading(true);
+            
+            // Simular delay de requisição
+            setTimeout(() => {
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (user) {
+                    // Login bem-sucedido
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    showSuccess('Login realizado com sucesso! Redirecionando...');
+                    
+                    setTimeout(() => {
+                        // Redirecionar para o calendário
+                        window.location.href = 'calendario.html';
+                    }, 1500);
+                } else {
+                    showError('E-mail ou senha incorretos. Tente novamente.');
+                }
+                
+                showLoading(false);
+            }, 1000);
+        }
+
+        function handleForgotPassword() {
+            const email = document.getElementById('forgotEmail').value;
+            
+            // Verificar se e-mail existe
+            const userExists = users.some(u => u.email === email);
+            
+            if (userExists) {
+                showSuccess('Instruções enviadas para seu e-mail!');
+                setTimeout(() => {
+                    closeForgotPasswordModal();
+                    hideMessages();
+                }, 2000);
+            } else {
+                showError('E-mail não encontrado em nossa base de dados.');
+            }
+        }
+
+        function goToSignup() {
+            // Redirecionar para página de cadastro
+            window.location.href = 'cadastro.html';
+        }
+
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('active');
+            document.getElementById('forgotEmail').focus();
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('active');
+            document.getElementById('forgotPasswordForm').reset();
+            hideMessages();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(hideMessages, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showLoading(show) {
+            const loginForm = document.getElementById('loginForm');
+            const loading = document.getElementById('loading');
+            
+            if (show) {
+                loginForm.style.display = 'none';
+                loading.style.display = 'block';
+            } else {
+                loginForm.style.display = 'block';
+                loading.style.display = 'none';
+            }
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('forgotPasswordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeForgotPasswordModal();
+            }
+        });
+
+        // Demonstrar credenciais na tela
+        setTimeout(() => {
+            console.log('📌 Credenciais de teste:');
+            console.log('E-mail: demo@calendariorotina.com');
+            console.log('Senha: 123456');
+            console.log('');
+            console.log('🔗 Arquivos necessários na mesma pasta:');
+            console.log('- login.html (esta página)');
+            console.log('- cadastro.html');
+            console.log('- calendario.html');
+        }, 1000);
     </script>
 </body>
 </html>

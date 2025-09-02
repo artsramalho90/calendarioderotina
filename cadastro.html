@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Rotina - Cadastro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 800px;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 20%, transparent 21%);
+            background-size: 40px 40px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-40px, -40px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0e7ff;
+            border-radius: 2px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .step-title {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .step-subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .goal-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .goal-card {
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .goal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .goal-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .goal-card .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .routine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .routine-item {
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .routine-item:hover {
+            border-color: #667eea;
+        }
+
+        .routine-item.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .checkbox-custom {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+
+        .checkbox-custom input {
+            width: auto;
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row, .goal-cards, .routine-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Calendário de Rotina</h1>
+            <p>Sua jornada para uma vida mais saudável começa aqui</p>
+        </div>
+
+        <div class="form-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <form id="healthForm">
+                <!-- Etapa 1: Dados Pessoais -->
+                <div class="step active" id="step1">
+                    <h2 class="step-title">Dados Pessoais</h2>
+                    <p class="step-subtitle">Vamos começar conhecendo você melhor</p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nome">Nome Completo</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="idade">Idade</label>
+                            <input type="number" id="idade" name="idade" min="16" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sexo">Sexo</label>
+                            <select id="sexo" name="sexo" required>
+                                <option value="">Selecione...</option>
+                                <option value="masculino">Masculino</option>
+                                <option value="feminino">Feminino</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Etapa 2: Dados Corporais -->
+                <div class="step" id="step2">
+                    <h2 class="step-title">Dados Corporais</h2>
+                    <p class="step-subtitle">Informações sobre seu corpo atual</p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="altura">Altura (cm)</label>
+                            <input type="number" id="altura" name="altura" min="120" max="250" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="peso">Peso Atual (kg)</label>
+                            <input type="number" id="peso" name="peso" min="30" max="300" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pesoMeta">Peso Meta (kg)</label>
+                            <input type="number" id="pesoMeta" name="pesoMeta" min="30" max="300" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="biotipo">Biotipo</label>
+                            <select id="biotipo" name="biotipo" required>
+                                <option value="">Selecione...</option>
+                                <option value="ectomorfo">Ectomorfo (magro naturalmente)</option>
+                                <option value="mesomorfo">Mesomorfo (atlético)</option>
+                                <option value="endomorfo">Endomorfo (tendência a ganhar peso)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Etapa 3: Objetivos -->
+                <div class="step" id="step3">
+                    <h2 class="step-title">Seus Objetivos</h2>
+                    <p class="step-subtitle">Qual é o seu foco principal?</p>
+
+                    <div class="goal-cards">
+                        <div class="goal-card" data-goal="emagrecer">
+                            <div class="icon">📉</div>
+                            <h3>Emagrecer</h3>
+                            <p>Perder peso de forma saudável</p>
+                        </div>
+                        <div class="goal-card" data-goal="manter">
+                            <div class="icon">⚖️</div>
+                            <h3>Manter</h3>
+                            <p>Manter peso e melhorar saúde</p>
+                        </div>
+                        <div class="goal-card" data-goal="ganhar">
+                            <div class="icon">📈</div>
+                            <h3>Ganhar Peso</h3>
+                            <p>Aumentar massa muscular</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeline">Em quanto tempo deseja alcançar sua meta?</label>
+                        <select id="timeline" name="timeline" required>
+                            <option value="">Selecione...</option>
+                            <option value="1mes">1 mês</option>
+                            <option value="3meses">3 meses</option>
+                            <option value="6meses">6 meses</option>
+                            <option value="1ano">1 ano</option>
+                            <option value="sempressa">Sem pressa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Etapa 4: Configuração da Rotina -->
+                <div class="step" id="step4">
+                    <h2 class="step-title">Configure sua Rotina</h2>
+                    <p class="step-subtitle">Personalize seus hábitos diários</p>
+
+                    <div class="routine-grid">
+                        <div class="routine-item">
+                            <h4>📊 Pesagem Diária</h4>
+                            <div class="checkbox-custom">
+                                <input type="checkbox" id="pesagemDiaria" name="pesagemDiaria">
+                                <label for="pesagemDiaria">Registrar peso todos os dias</label>
+                            </div>
+                        </div>
+
+                        <div class="routine-item">
+                            <h4>🔥 Meta de Calorias</h4>
+                            <div class="checkbox-custom">
+                                <input type="checkbox" id="metaCalorias" name="metaCalorias">
+                                <label for="metaCalorias">Definir meta diária de calorias</label>
+                            </div>
+                        </div>
+
+                        <div class="routine-item">
+                            <h4>🏃‍♂️ Exercícios</h4>
+                            <div class="checkbox-custom">
+                                <input type="checkbox" id="exercicios" name="exercicios">
+                                <label for="exercicios">Registrar atividades físicas</label>
+                            </div>
+                        </div>
+
+                        <div class="routine-item">
+                            <h4>💧 Hidratação</h4>
+                            <div class="checkbox-custom">
+                                <input type="checkbox" id="hidratacao" name="hidratacao">
+                                <label for="hidratacao">Controlar consumo de água</label>
+                            </div>
+                        </div>
+
+                        <div class="routine-item">
+                            <h4>📚 Leitura</h4>
+                            <div class="checkbox-custom">
+                                <input type="checkbox" id="leitura" name="leitura">
+                                <label for="leitura">Incluir hábito de leitura diário</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="refeicoes">Quantas refeições por dia?</label>
+                        <select id="refeicoes" name="refeicoes" required>
+                            <option value="3">3 refeições (café, almoço, jantar)</option>
+                            <option value="5" selected>5 refeições (+ 2 lanches)</option>
+                            <option value="6">6 refeições (+ 3 lanches)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Etapa 5: Restrições e Preferências -->
+                <div class="step" id="step5">
+                    <h2 class="step-title">Restrições e Preferências</h2>
+                    <p class="step-subtitle">Informações importantes sobre suas limitações</p>
+
+                    <div class="form-group">
+                        <label for="alergias">Alergias ou Restrições Alimentares</label>
+                        <textarea id="alergias" name="alergias" rows="3" placeholder="Ex: lactose, glúten, amendoim..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="limitacoes">Limitações Físicas</label>
+                        <textarea id="limitacoes" name="limitacoes" rows="3" placeholder="Ex: problemas no joelho, lesões..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experiencia">Experiência com Exercícios</label>
+                        <select id="experiencia" name="experiencia" required>
+                            <option value="">Selecione...</option>
+                            <option value="iniciante">Iniciante</option>
+                            <option value="intermediario">Intermediário</option>
+                            <option value="avancado">Avançado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Etapa 6: Confirmação -->
+                <div class="step" id="step6">
+                    <div class="success-message">
+                        <div class="success-icon">✅</div>
+                        <h2 class="step-title">Cadastro Concluído!</h2>
+                        <p class="step-subtitle">Sua jornada saudável está prestes a começar. Vamos criar seu plano personalizado!</p>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
+                        ← Voltar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="nextBtn">
+                        Próximo →
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 6;
+
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const progressFill = document.getElementById('progressFill');
+
+        // Seleção de objetivos
+        document.querySelectorAll('.goal-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                // Criar input hidden para o valor selecionado
+                let existingInput = document.querySelector('input[name="objetivo"]');
+                if (existingInput) existingInput.remove();
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'objetivo';
+                input.value = this.dataset.goal;
+                document.getElementById('healthForm').appendChild(input);
+            });
+        });
+
+        // Seleção de rotinas
+        document.querySelectorAll('.routine-item').forEach(item => {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            
+            item.addEventListener('click', function(e) {
+                if (e.target.type !== 'checkbox') {
+                    checkbox.checked = !checkbox.checked;
+                }
+                
+                if (checkbox.checked) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            });
+        });
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            prevBtn.style.display = step > 1 ? 'block' : 'none';
+            
+            if (step === totalSteps) {
+                nextBtn.textContent = 'Começar Jornada! 🚀';
+            } else {
+                nextBtn.textContent = 'Próximo →';
+            }
+        }
+
+        function validateStep(step) {
+            const stepElement = document.getElementById('step' + step);
+            const requiredInputs = stepElement.querySelectorAll('input[required], select[required]');
+            
+            for (let input of requiredInputs) {
+                if (!input.value.trim()) {
+                    input.focus();
+                    return false;
+                }
+            }
+            
+            // Validação especial para etapa 3 (objetivos)
+            if (step === 3) {
+                const selectedGoal = document.querySelector('.goal-card.selected');
+                if (!selectedGoal) {
+                    alert('Por favor, selecione seu objetivo principal.');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        nextBtn.addEventListener('click', function() {
+            if (currentStep < totalSteps) {
+                if (validateStep(currentStep)) {
+                    currentStep++;
+                    showStep(currentStep);
+                    updateProgress();
+                }
+            } else {
+                // Submeter formulário
+                const formData = new FormData(document.getElementById('healthForm'));
+                
+                // Adicionar dados das rotinas selecionadas
+                const routineData = {};
+                document.querySelectorAll('.routine-item input[type="checkbox"]').forEach(checkbox => {
+                    routineData[checkbox.name] = checkbox.checked;
+                });
+                
+                // Criar objeto com configurações da rotina
+                const userConfig = {
+                    ...Object.fromEntries(formData),
+                    rotina: {
+                        pesagemDiaria: routineData.pesagemDiaria || false,
+                        metaCalorias: routineData.metaCalorias || false,
+                        exercicios: routineData.exercicios || false,
+                        hidratacao: routineData.hidratacao || false,
+                        leitura: routineData.leitura || false,
+                        refeicoes: parseInt(formData.get('refeicoes')) || 5
+                    }
+                };
+                
+                // Salvar configuração do usuário
+                localStorage.setItem('userConfig', JSON.stringify(userConfig));
+                
+                console.log('Dados coletados:', userConfig);
+                
+                // Mostrar mensagem de sucesso e botão para ir ao dashboard
+                setTimeout(() => {
+                    document.querySelector('.step.active .success-message').innerHTML = `
+                        <div class="success-icon">✅</div>
+                        <h2 class="step-title">Cadastro Concluído!</h2>
+                        <p class="step-subtitle">Sua jornada saudável está prestes a começar!</p>
+                        <button class="btn btn-primary" onclick="goToDashboard()" style="margin-top: 20px;">
+                            Ir para Dashboard 🚀
+                        </button>
+                    `;
+                }, 500);
+            }
+        });
+
+        prevBtn.addEventListener('click', function() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+                updateProgress();
+            }
+        });
+
+        // Inicializar
+        updateProgress();
+        
+        // Função para ir ao dashboard
+        function goToDashboard() {
+            // Aqui você abriria o dashboard em uma nova janela ou redirecionaria
+            alert('Dashboard será aberto! (Vou criar o código do dashboard separadamente)');
+             window.open('calendario.html', '_blank');
+        }
+    </script>
+</body>
+</html>
