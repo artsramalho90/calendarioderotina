@@ -283,6 +283,15 @@
             margin-bottom: 20px;
         }
 
+        .sub-options {
+            margin-left: 30px;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
         @media (max-width: 768px) {
             .form-row, .goal-cards, .routine-grid {
                 grid-template-columns: 1fr;
@@ -329,9 +338,16 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="idade">Idade</label>
-                            <input type="number" id="idade" name="idade" min="16" max="100" required>
+                            <label for="dataNascimento">Data de Nascimento</label>
+                            <input type="date" id="dataNascimento" name="dataNascimento" required onchange="calcularIdade()">
                         </div>
+                        <div class="form-group">
+                            <label for="idade">Idade (calculada automaticamente)</label>
+                            <input type="number" id="idade" name="idade" readonly style="background-color: #e5e7eb;">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="sexo">Sexo</label>
                             <select id="sexo" name="sexo" required>
@@ -356,7 +372,7 @@
                         </div>
                         <div class="form-group">
                             <label for="peso">Peso Atual (kg)</label>
-                            <input type="number" id="peso" name="peso" min="30" max="300" step="0.1" required>
+                            <input type="number" id="peso" name="peso" min="30" max="300" step="0.1" required onchange="calcularMetaAgua()">
                         </div>
                     </div>
 
@@ -419,11 +435,32 @@
                     <p class="step-subtitle">Personalize seus hábitos diários</p>
 
                     <div class="routine-grid">
-                        <div class="routine-item">
-                            <h4>📊 Pesagem Diária</h4>
+                        <div class="routine-item" id="pesagemItem">
+                            <h4>📊 Registro de Peso</h4>
                             <div class="checkbox-custom">
-                                <input type="checkbox" id="pesagemDiaria" name="pesagemDiaria">
-                                <label for="pesagemDiaria">Registrar peso todos os dias</label>
+                                <input type="checkbox" id="registroPeso" name="registroPeso">
+                                <label for="registroPeso">Registrar peso</label>
+                            </div>
+                            <div class="sub-options" id="pesagemOptions" style="display: none;">
+                                <div class="form-group">
+                                    <label for="frequenciaPeso">Frequência:</label>
+                                    <select id="frequenciaPeso" name="frequenciaPeso">
+                                        <option value="diario">Diariamente</option>
+                                        <option value="semanal">Semanalmente</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="diaPesoSemanal" style="display: none;">
+                                    <label for="diaPeso">Dia da semana:</label>
+                                    <select id="diaPeso" name="diaPeso">
+                                        <option value="0">Domingo</option>
+                                        <option value="1">Segunda-feira</option>
+                                        <option value="2">Terça-feira</option>
+                                        <option value="3">Quarta-feira</option>
+                                        <option value="4">Quinta-feira</option>
+                                        <option value="5">Sexta-feira</option>
+                                        <option value="6">Sábado</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
@@ -432,6 +469,12 @@
                             <div class="checkbox-custom">
                                 <input type="checkbox" id="metaCalorias" name="metaCalorias">
                                 <label for="metaCalorias">Definir meta diária de calorias</label>
+                            </div>
+                            <div class="sub-options" id="caloriasOptions" style="display: none;">
+                                <div class="form-group">
+                                    <label for="caloriasMeta">Meta diária (kcal):</label>
+                                    <input type="number" id="caloriasMeta" name="caloriasMeta" min="1000" max="5000" step="50" value="2000">
+                                </div>
                             </div>
                         </div>
 
@@ -448,6 +491,13 @@
                             <div class="checkbox-custom">
                                 <input type="checkbox" id="hidratacao" name="hidratacao">
                                 <label for="hidratacao">Controlar consumo de água</label>
+                            </div>
+                            <div class="sub-options" id="hidratacaoOptions" style="display: none;">
+                                <div class="form-group">
+                                    <label for="metaAgua">Meta diária (ml):</label>
+                                    <input type="number" id="metaAgua" name="metaAgua" min="500" max="5000" step="100" value="2000">
+                                    <small id="aguaCalculada">Calculada automaticamente com base no seu peso</small>
+                                </div>
                             </div>
                         </div>
 
@@ -525,6 +575,57 @@
         const prevBtn = document.getElementById('prevBtn');
         const progressFill = document.getElementById('progressFill');
 
+        // Função para calcular idade a partir da data de nascimento
+        function calcularIdade() {
+            const dataNascimento = new Date(document.getElementById('dataNascimento').value);
+            const hoje = new Date();
+            let idade = hoje.getFullYear() - dataNascimento.getFullYear();
+            const mes = hoje.getMonth() - dataNascimento.getMonth();
+            
+            if (mes < 0 || (mes === 0 && hoje.getDate() < dataNascimento.getDate())) {
+                idade--;
+            }
+            
+            document.getElementById('idade').value = idade;
+        }
+
+        // Função para calcular meta de água baseada no peso
+        function calcularMetaAgua() {
+            const peso = parseFloat(document.getElementById('peso').value) || 0;
+            if (peso > 0) {
+                const metaAgua = Math.round(peso * 35);
+                document.getElementById('metaAgua').value = metaAgua;
+                document.getElementById('aguaCalculada').textContent = `Calculada: ${metaAgua}ml (35ml × ${peso}kg)`;
+            }
+        }
+
+        // Mostrar/ocultar opções de frequência de pesagem
+        document.getElementById('registroPeso').addEventListener('change', function() {
+            const optionsDiv = document.getElementById('pesagemOptions');
+            optionsDiv.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Mostrar/ocultar dia da semana para pesagem semanal
+        document.getElementById('frequenciaPeso').addEventListener('change', function() {
+            const diaPesoDiv = document.getElementById('diaPesoSemanal');
+            diaPesoDiv.style.display = this.value === 'semanal' ? 'block' : 'none';
+        });
+
+        // Mostrar/ocultar opções de meta de calorias
+        document.getElementById('metaCalorias').addEventListener('change', function() {
+            const optionsDiv = document.getElementById('caloriasOptions');
+            optionsDiv.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Mostrar/ocultar opções de hidratação
+        document.getElementById('hidratacao').addEventListener('change', function() {
+            const optionsDiv = document.getElementById('hidratacaoOptions');
+            optionsDiv.style.display = this.checked ? 'block' : 'none';
+            if (this.checked) {
+                calcularMetaAgua();
+            }
+        });
+
         // Seleção de objetivos
         document.querySelectorAll('.goal-card').forEach(card => {
             card.addEventListener('click', function() {
@@ -548,8 +649,12 @@
             const checkbox = item.querySelector('input[type="checkbox"]');
             
             item.addEventListener('click', function(e) {
-                if (e.target.type !== 'checkbox') {
+                if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL' && e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT') {
                     checkbox.checked = !checkbox.checked;
+                    
+                    // Disparar evento change para mostrar/ocultar opções
+                    const event = new Event('change');
+                    checkbox.dispatchEvent(event);
                 }
                 
                 if (checkbox.checked) {
@@ -622,10 +727,17 @@
                 const userConfig = {
                     ...Object.fromEntries(formData),
                     rotina: {
-                        pesagemDiaria: routineData.pesagemDiaria || false,
+                        registroPeso: routineData.registroPeso || false,
+                        frequenciaPeso: document.getElementById('frequenciaPeso').value,
+                        diaPeso: document.getElementById('frequenciaPeso').value === 'semanal' ? 
+                                 parseInt(document.getElementById('diaPeso').value) : null,
                         metaCalorias: routineData.metaCalorias || false,
+                        caloriasMeta: routineData.metaCalorias ? 
+                                     parseInt(document.getElementById('caloriasMeta').value) : null,
                         exercicios: routineData.exercicios || false,
                         hidratacao: routineData.hidratacao || false,
+                        metaAgua: routineData.hidratacao ? 
+                                 parseInt(document.getElementById('metaAgua').value) : null,
                         leitura: routineData.leitura || false,
                         refeicoes: parseInt(formData.get('refeicoes')) || 5
                     }
@@ -663,9 +775,7 @@
         
         // Função para ir ao dashboard
         function goToDashboard() {
-            // Aqui você abriria o dashboard em uma nova janela ou redirecionaria
-            alert('Dashboard será aberto! (Vou criar o código do dashboard separadamente)');
-             window.open('calendario.html', '_blank');
+            window.location.href = 'calendario.html';
         }
     </script>
 </body>
