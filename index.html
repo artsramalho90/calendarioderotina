@@ -160,6 +160,12 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: #e5e7eb;
             color: #374151;
@@ -179,6 +185,7 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s ease;
+            cursor: pointer;
         }
 
         .forgot-password a:hover {
@@ -228,7 +235,6 @@
             display: none;
         }
 
-        /* Modal para Esqueci Senha */
         .modal {
             display: none;
             position: fixed;
@@ -269,18 +275,6 @@
         .modal-header p {
             color: #64748b;
             font-size: 14px;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #64748b;
-            padding: 5px;
         }
 
         .loading {
@@ -328,7 +322,7 @@
     <div class="login-container">
         <div class="header">
             <h1>📅 Calendário de Rotina</h1>
-            <p>Sua Jornada Saudável Diária</p>
+            <p>Sua jornada para uma vida mais saudável começa aqui</p>
         </div>
 
         <div class="intro-section">
@@ -358,13 +352,13 @@
                     <input type="password" id="password" name="password" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="loginBtn">
                     Entrar 🚀
                 </button>
             </form>
 
             <div class="forgot-password">
-                <a href="#" onclick="openForgotPasswordModal()">Esqueci minha senha</a>
+                <a onclick="openForgotPasswordModal()">Esqueci minha senha</a>
             </div>
 
             <div class="divider">
@@ -408,18 +402,8 @@
     </div>
 
     <script>
-        // Simulação de dados de usuários (em um app real, isso seria no backend)
-        let users = JSON.parse(localStorage.getItem('calendarioRotinaUsers')) || [];
-        
-        // Adicionar usuário demo se não existir
-        if (users.length === 0) {
-            users.push({
-                email: 'demo@calendariorotina.com',
-                password: '123456',
-                nome: 'Usuário Demo'
-            });
-            localStorage.setItem('calendarioRotinaUsers', JSON.stringify(users));
-        }
+        // URL do Google Apps Script (SUBSTITUA PELA SUA URL)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8QBR00IvFFbkkeHaD6ELjyfNO6BDj2AYHuY0ef7Z1tWTz0bSYmzi8EjF8rY6iKnCBMQ/exec';
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -438,46 +422,69 @@
             hideMessages();
             showLoading(true);
             
-            // Simular delay de requisição
-            setTimeout(() => {
-                const user = users.find(u => u.email === email && u.password === password);
-                
-                if (user) {
+            // Chamar Google Apps Script para autenticação
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'login',
+                    email: email,
+                    password: password
+                })
+            })
+            .then(() => {
+                // Como é no-cors, vamos fazer uma chamada GET para verificar
+                return fetch(`${SCRIPT_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     // Login bem-sucedido
-                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    sessionStorage.setItem('userEmail', email);
+                    sessionStorage.setItem('userData', JSON.stringify(data.userData));
                     showSuccess('Login realizado com sucesso! Redirecionando...');
                     
                     setTimeout(() => {
-                        // Redirecionar para o calendário
                         window.location.href = 'calendario.html';
                     }, 1500);
                 } else {
-                    showError('E-mail ou senha incorretos. Tente novamente.');
+                    showError(data.message || 'E-mail ou senha incorretos. Tente novamente.');
                 }
-                
                 showLoading(false);
-            }, 1000);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showError('Erro ao fazer login. Tente novamente.');
+                showLoading(false);
+            });
         }
 
         function handleForgotPassword() {
             const email = document.getElementById('forgotEmail').value;
             
-            // Verificar se e-mail existe
-            const userExists = users.some(u => u.email === email);
-            
-            if (userExists) {
-                showSuccess('Instruções enviadas para seu e-mail!');
-                setTimeout(() => {
-                    closeForgotPasswordModal();
-                    hideMessages();
-                }, 2000);
-            } else {
-                showError('E-mail não encontrado em nossa base de dados.');
-            }
+            fetch(`${SCRIPT_URL}?action=forgotPassword&email=${encodeURIComponent(email)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('Instruções enviadas para seu e-mail!');
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                        hideMessages();
+                    }, 2000);
+                } else {
+                    showError(data.message || 'E-mail não encontrado em nossa base de dados.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showError('Erro ao processar solicitação. Tente novamente.');
+            });
         }
 
         function goToSignup() {
-            // Redirecionar para página de cadastro
             window.location.href = 'cadastro.html';
         }
 
@@ -513,13 +520,16 @@
         function showLoading(show) {
             const loginForm = document.getElementById('loginForm');
             const loading = document.getElementById('loading');
+            const loginBtn = document.getElementById('loginBtn');
             
             if (show) {
                 loginForm.style.display = 'none';
                 loading.style.display = 'block';
+                loginBtn.disabled = true;
             } else {
                 loginForm.style.display = 'block';
                 loading.style.display = 'none';
+                loginBtn.disabled = false;
             }
         }
 
@@ -529,18 +539,6 @@
                 closeForgotPasswordModal();
             }
         });
-
-        // Demonstrar credenciais na tela
-        setTimeout(() => {
-            console.log('📌 Credenciais de teste:');
-            console.log('E-mail: demo@calendariorotina.com');
-            console.log('Senha: 123456');
-            console.log('');
-            console.log('🔗 Arquivos necessários na mesma pasta:');
-            console.log('- login.html (esta página)');
-            console.log('- cadastro.html');
-            console.log('- calendario.html');
-        }, 1000);
     </script>
 </body>
 </html>
